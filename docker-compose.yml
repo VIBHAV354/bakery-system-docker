@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14
+    container_name: bakery-db
+    environment:
+      POSTGRES_USER: vibhav
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: bakery
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - backend-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vibhav -d bakery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: bakery-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - backend-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
+
+  backend:
+    build: ./backend
+    container_name: bakery-backend
+    depends_on:
+      - db
+      - rabbitmq
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://vibhav:12345@db:5432/bakery
+      RABBITMQ_URL: amqp://rabbitmq:5672
+    networks:
+      - frontend-network
+      - backend-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  frontend:
+    build: ./frontend
+    container_name: bakery-frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    networks:
+      - frontend-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 128M
+
+networks:
+  frontend-network:
+    driver: bridge
+    name: bakery-frontend-network
+  backend-network:
+    driver: bridge
+    name: bakery-backend-network
+
+volumes:
+  db-data:
