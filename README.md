@@ -1,5 +1,7 @@
 # 7th Heaven Bakery System
 
+https://youtu.be/9BsCRYxYq_0?si=ZhM-BXamd9WW5PKk
+
 This is a containerized bakery management system that includes a PostgreSQL database, a backend API service consisting of 3 api endpoints, a frontend web application developed with html,css and js, and RabbitMQ for message queuing.
 
 ## System Architecture
