@@ -57,9 +57,9 @@ RabbitMQ is used to handle order processing asynchronously, which helps decouple
 ```
 ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
 │               │     │               │     │               │
-│   Frontend    │────▶│    Backend    │────▶│   Database    │
+│   Frontend    │───▶│    Backend    │────▶│   Database    │
 │  (HTML/JS/CSS)│     │    (Flask)    │     │  (PostgreSQL) │
-│               │◀────│               │◀────│               │
+│               │◀───│               │◀────│               │
 └───────────────┘     └───────┬───────┘     └───────────────┘
                              │
                              ▼
